@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <locale.h>
+
+void swap(int arr[], int i, int j);
+
+void generate_variants(int arr[], int start, int end);
+
+int main() {
+  setlocale(LC_ALL, "RU");
+
+  int N, M;
+
+  printf("Введите N: ");
+  if (scanf("%d", &N) != 1) {
+    printf("Ошибка");
+    return 1;
+  }
+
+  printf("Введите M: ");
+  if (scanf("%d", &M) != 1) {
+    printf("Ошибка");
+    return 1;
+  }
+
+  if (N < 1 || M < 1) {
+    printf("Ошибка");
+    return 1;
+  }
+
+  if (N > M) {
+    printf("Ошибка");
+    return 1;
+  }
+
+  if (M - N > 9) {
+    printf("Ошибка");
+    return 1;
+  }
+  int count = M - N + 1;
+  int nums[10];
+  for (int i = 0; i < count; i++) {
+    nums[i] = N + i;
+  }
+
+  generate_variants(nums, 0, count - 1);
+
+  return 0;
+}
+
+void swap(int arr[], int i, int j) {
+  int a = arr[i];
+  arr[i] = arr[j];
+  arr[j] = a;
+}
+
+void generate_variants(int arr[], int start, int end) {
+  if (start == end) {
+    for (int i = 0; i <= end; i++) {
+      printf("%d", arr[i]);
+    }
+    printf("\n");
+    return;
+  }
+
+  for (int i = start; i <= end; i++) {
+    swap(arr, start, i);
+    generate_variants(arr, start + 1, end);
+    swap(arr, start, i);
+  }
+}
