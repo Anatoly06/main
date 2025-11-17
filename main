@@ -1,70 +1,181 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
 #include <locale.h>
 
-void swap(int arr[], int i, int j);
+int* generate_random_array(int size);
 
-void generate_variants(int arr[], int start, int end);
+int* copy_array(const int* original, int size);
+
+void bubble_sort(int* arr, int size);
+
+void insertion_sort(int* arr, int size);
+
+void merge(int* arr, int left, int mid, int right);
+
+void merge_sort_recursive(int* arr, int left, int right);
+
+void merge_sort(int* arr, int size);
+
+void test_sort(void (*sort_func)(int*, int), const char* sort_name, int* original_arr, int size);
+
+void print_line();
+
+void print_zagolovok();
 
 int main() {
-  setlocale(LC_ALL, "RU");
+    setlocale(LC_ALL, "Russian");
 
-  int N, M;
+    srand(time(NULL));
 
-  printf("Введите N: ");
-  if (scanf("%d", &N) != 1) {
-    printf("Ошибка");
-    return 1;
-  }
+    int sizes[] = { 10, 1000, 10000, 100000 };
+    int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
 
-  printf("Введите M: ");
-  if (scanf("%d", &M) != 1) {
-    printf("Ошибка");
-    return 1;
-  }
+    for (int i = 0; i < num_sizes; i++) {
+        int size = sizes[i];
+        printf("массив размером  %d \n", size);
 
-  if (N < 1 || M < 1) {
-    printf("Ошибка");
-    return 1;
-  }
+        int* original_arr = generate_random_array(size);
 
-  if (N > M) {
-    printf("Ошибка");
-    return 1;
-  }
+        print_zagolovok();
 
-  if (M - N > 9) {
-    printf("Ошибка");
-    return 1;
-  }
-  int count = M - N + 1;
-  int nums[10];
-  for (int i = 0; i < count; i++) {
-    nums[i] = N + i;
-  }
+        test_sort(bubble_sort, "Пузырьком", original_arr, size);
+        test_sort(insertion_sort, "Вставками", original_arr, size);
+        test_sort(merge_sort, "Слиянием", original_arr, size);
 
-  generate_variants(nums, 0, count - 1);
+        print_line();
+        printf("\n");
 
-  return 0;
-}
-
-void swap(int arr[], int i, int j) {
-  int a = arr[i];
-  arr[i] = arr[j];
-  arr[j] = a;
-}
-
-void generate_variants(int arr[], int start, int end) {
-  if (start == end) {
-    for (int i = 0; i <= end; i++) {
-      printf("%d", arr[i]);
+        free(original_arr);
     }
-    printf("\n");
-    return;
-  }
 
-  for (int i = start; i <= end; i++) {
-    swap(arr, start, i);
-    generate_variants(arr, start + 1, end);
-    swap(arr, start, i);
-  }
+    return 0;
+}
+
+int* generate_random_array(int size) {
+    int* arr = (int*)malloc(size * sizeof(int));
+    if (arr == NULL) {
+        printf("память не выделилась");
+        exit(1);
+    }
+    for (int i = 0; i < size; i++) {
+        arr[i] = rand() % 10000;
+    }
+    return arr;
+}
+
+int* copy_array(const int* original, int size) {
+    int* copy = (int*)malloc(size * sizeof(int));
+    if (copy == NULL) {
+        printf("память не выделилась");
+        exit(1);
+    }
+    memcpy(copy, original, size * sizeof(int));
+    return copy;
+}
+
+void bubble_sort(int* arr, int size) {
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void insertion_sort(int* arr, int size) {
+    for (int i = 1; i < size; i++) {
+        int key = arr[i];
+        int j = i - 1;
+
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void merge(int* arr, int left, int mid, int right) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    int* left_arr = (int*)malloc(n1 * sizeof(int));
+    int* right_arr = (int*)malloc(n2 * sizeof(int));
+
+    for (int i = 0; i < n1; i++)
+        left_arr[i] = arr[left + i];
+    for (int j = 0; j < n2; j++)
+        right_arr[j] = arr[mid + 1 + j];
+
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2) {
+        if (left_arr[i] <= right_arr[j]) {
+            arr[k] = left_arr[i];
+            i++;
+        }
+        else {
+            arr[k] = right_arr[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = left_arr[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = right_arr[j];
+        j++;
+        k++;
+    }
+
+    free(left_arr);
+    free(right_arr);
+}
+
+void merge_sort_recursive(int* arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+
+        merge_sort_recursive(arr, left, mid);
+        merge_sort_recursive(arr, mid + 1, right);
+
+        merge(arr, left, mid, right);
+    }
+}
+
+void merge_sort(int* arr, int size) {
+    merge_sort_recursive(arr, 0, size - 1);
+}
+
+void test_sort(void (*sort_func)(int*, int), const char* sort_name, int* original_arr, int size) {
+    int* arr = copy_array(original_arr, size);
+
+    clock_t start = clock();
+    sort_func(arr, size);
+    clock_t end = clock();
+
+    double seconds = (double)(end - start) / CLOCKS_PER_SEC;
+
+    printf("| %-15s | %9d | %12.6f |\n", sort_name, size, seconds);
+
+    free(arr);
+}
+
+void print_line() {
+    printf("----------------------------------------------\n");
+}
+
+void print_zagolovok() {
+    print_line();
+    printf("| %-15s | %-9s     | %-12s      |\n", "Алгоритм", "Размер", "Время ");
+    print_line();
 }
